@@ -13,9 +13,7 @@ from simple_history.models import HistoricalRecords
 class UserManager(BaseUserManager):
     def _create_user(
         self,
-        username,
         email,
-        language,
         is_staff,
         is_superuser,
         password=None,
@@ -24,27 +22,25 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("Users must have an email address")
 
+        if "language" in extra_fields and extra_fields["language"] == "":
+            extra_fields["language"] = "en"
+
         email = self.normalize_email(email)
         user = self.model(
-            username=username,
             email=email,
-            language=language,
             is_staff=is_staff,
             is_superuser=is_superuser,
+            **extra_fields,
         )
         user.set_password(password)
-        user.save(using=self.db)
+        user.save()
         return user
 
-    def create_user(self, username, email, language, password=None, **extra_fields):
-        return self._create_user(
-            username, email, language, False, False, password, **extra_fields
-        )
+    def create_user(self, email, password=None, **extra_fields):
+        return self._create_user(email, False, False, password, **extra_fields)
 
-    def create_superuser(self, username, email, password=None, **extra_fields):
-        return self._create_user(
-            username, email, "en", True, True, password, **extra_fields
-        )
+    def create_superuser(self, email, password=None, **extra_fields):
+        return self._create_user(email, True, True, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -65,8 +61,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     historical = HistoricalRecords()
     objects = UserManager()
 
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["email"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "language"]
 
     class Meta:
         verbose_name = "User"
