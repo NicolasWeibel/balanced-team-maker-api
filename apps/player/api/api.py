@@ -36,9 +36,12 @@ class PlayerListDetailAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, id):
+        print(dir(self.request.user))
+        print(self.request.user)
+
         user = self.request.user
-        if PlayerList.objects.filter(user=user, id=id).exists():
-            player_list = UserPlayerList.objects.filter(user=user, id=id)
+        if UserPlayerList.objects.filter(user=user, id=id).exists():
+            player_list = PlayerList.objects.filter(id=id)
 
             player_list_serializer = PlayerListSerializer(player_list)
 
