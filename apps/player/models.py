@@ -9,9 +9,9 @@ MAX_PLAYERS_PER_LIST = 100
 
 
 def validate_max_player_lists_per_user(user):
-    if PlayerList.objects.filter(user=user).count() >= MAX_PLAYER_LISTS_PER_USER:
+    if UserPlayerList.objects.filter(user=user).count() >= MAX_PLAYER_LISTS_PER_USER:
         raise ValidationError(
-            _(
+            (
                 f"User has reached the maximum limit of lists ({MAX_PLAYER_LISTS_PER_USER})."
             ),
         )
@@ -20,7 +20,7 @@ def validate_max_player_lists_per_user(user):
 def validate_max_players_per_list(player_list):
     if Player.objects.filter(player_list=player_list).count() >= MAX_PLAYERS_PER_LIST:
         raise ValidationError(
-            _(
+            (
                 f"List has reached the maximum limit of players ({MAX_PLAYERS_PER_LIST})."
             ),
         )
@@ -54,7 +54,6 @@ class Player(models.Model):
     GENDER_CHOICES = (
         ("m", "Male"),
         ("f", "Female"),
-        ("n", "Not specified"),
     )
 
     STAR_CHOICES = [

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 
-from apps.player.api.serializers import PlayerListSerializer
+from apps.player.api.serializers import PlayerListSerializer, PlayerSerializer
 from apps.player.models import Player, PlayerList, UserPlayerList
 
 
@@ -36,22 +36,28 @@ class PlayerListDetailAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, id):
-        print(dir(self.request.user))
-        print(self.request.user)
-
         user = self.request.user
-        if UserPlayerList.objects.filter(user=user, id=id).exists():
-            player_list = PlayerList.objects.filter(id=id)
 
-            player_list_serializer = PlayerListSerializer(player_list)
+        if UserPlayerList.objects.filter(user=user, id=id).exists():
+            player_list = PlayerList.objects.get(id=id)
+
+            result = {
+                "id": player_list.id,
+                "title": player_list.title,
+            }
+
+            players = Player.objects.filter(player_list=player_list)
+            players_serializer = PlayerSerializer(players, many=True)
+
+            result["players"] = players_serializer.data
 
             return Response(
-                {"player_lists": player_list_serializer.data},
+                {"player_list": result},
                 status=status.HTTP_200_OK,
             )
         else:
             return Response(
-                {"error": "Player lists not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Player list not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
 
@@ -74,14 +80,14 @@ class CreateUserPlayerListAPIView(APIView):
 
                 for player_data in data["players"]:
                     player = Player(
-                        name=player_data.name,
-                        position=player_data.position,
+                        name=player_data["name"],
+                        position=player_data["position"],
                         player_list=player_list,
-                        gender=player_data.gender,
-                        stars=player_data.stars,
-                        attack=player_data.attack,
-                        defense=player_data.defense,
-                        resistance=player_data.resistance,
+                        gender=player_data["gender"],
+                        stars=player_data["stars"],
+                        attack=player_data["attack"],
+                        defense=player_data["defense"],
+                        resistance=player_data["resistance"],
                     )
                     player.full_clean()
                     player.save()
@@ -104,39 +110,33 @@ class EditUserPlayerListAPIView(APIView):
         user = self.request.user
 
         data = self.request.data
-        player_list = PlayerList.objects.filter(id=data["id"])
+        player_list = PlayerList.objects.filter(id=data["id"]).first()
 
         if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
-            try:
-                with transaction.atomic():
-                    player_list.update(
-                        title=data["title"], players=len(data["players"])
+            with transaction.atomic():
+                player_list.title = data["title"]
+                player_list.players = len(data["players"])
+                player_list.save()
+
+                Player.objects.filter(player_list=player_list).delete()
+
+                for player_data in data["players"]:
+                    player = Player(
+                        name=player_data["name"],
+                        position=player_data["position"],
+                        player_list=player_list,
+                        gender=player_data["gender"],
+                        stars=player_data["stars"],
+                        attack=player_data["attack"],
+                        defense=player_data["defense"],
+                        resistance=player_data["resistance"],
                     )
+                    player.full_clean()
+                    player.save()
 
-                    Player.objects.filter(player_list=player_list).delete()
-
-                    for player_data in data["players"]:
-                        player = Player(
-                            name=player_data["name"],
-                            position=player_data["position"],
-                            player_list=player_list,
-                            gender=player_data["gender"],
-                            stars=player_data["stars"],
-                            attack=player_data["attack"],
-                            defense=player_data["defense"],
-                            resistance=player_data["resistance"],
-                        )
-                        player.full_clean()
-                        player.save()
-
-                    return Response(
-                        {"success": "List edited"},
-                        status=status.HTTP_200_OK,
-                    )
-            except IntegrityError as e:
                 return Response(
-                    {"error": e.message},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    {"success": "List edited"},
+                    status=status.HTTP_200_OK,
                 )
         else:
             return Response(
@@ -147,11 +147,10 @@ class EditUserPlayerListAPIView(APIView):
 class DeleteUserPlayerListAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    def delete(self, request, format=None):
+    def delete(self, request, id, format=None):
         user = self.request.user
 
-        data = self.request.data
-        player_list = PlayerList.objects.filter(id=data["id"])
+        player_list = PlayerList.objects.filter(id=id).first()
 
         if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
             player_list.delete()

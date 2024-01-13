@@ -18,12 +18,12 @@ urlpatterns = [
     path(
         "list/edit",
         EditUserPlayerListAPIView.as_view(),
-        name="create_player_list_api",
+        name="edit_player_list_api",
     ),
     path(
-        "list/delete",
+        "list/delete/<id>",
         DeleteUserPlayerListAPIView.as_view(),
-        name="create_player_list_api",
+        name="delete_player_list_api",
     ),
     path(
         "detail/<id>", PlayerListDetailAPIView.as_view(), name="player_list_detail_api"
