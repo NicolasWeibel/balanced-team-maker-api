@@ -67,38 +67,31 @@ class CreateUserPlayerListAPIView(APIView):
         user = self.request.user
 
         data = self.request.data
+        with transaction.atomic():
+            player_list = PlayerList.objects.create(
+                title=data["title"], players=len(data["players"])
+            )
+            user_player_list = UserPlayerList(user=user, player_list=player_list)
+            user_player_list.full_clean()
+            user_player_list.save()
 
-        try:
-            with transaction.atomic():
-                player_list = PlayerList.objects.create(
-                    title=data["title"], players=len(data["players"])
+            for player_data in data["players"]:
+                player = Player(
+                    name=player_data["name"],
+                    position=player_data["position"],
+                    player_list=player_list,
+                    gender=player_data["gender"],
+                    stars=player_data["stars"],
+                    attack=player_data["attack"],
+                    defense=player_data["defense"],
+                    resistance=player_data["resistance"],
                 )
-                user_player_list = UserPlayerList(user=user, player_list=player_list)
-                user_player_list.full_clean()
-                user_player_list.save()
+                player.full_clean()
+                player.save()
 
-                for player_data in data["players"]:
-                    player = Player(
-                        name=player_data["name"],
-                        position=player_data["position"],
-                        player_list=player_list,
-                        gender=player_data["gender"],
-                        stars=player_data["stars"],
-                        attack=player_data["attack"],
-                        defense=player_data["defense"],
-                        resistance=player_data["resistance"],
-                    )
-                    player.full_clean()
-                    player.save()
-
-                return Response(
-                    {"success": "List created"},
-                    status=status.HTTP_200_OK,
-                )
-        except IntegrityError as e:
             return Response(
-                {"error": e.message},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"success": "List created"},
+                status=status.HTTP_200_OK,
             )
 
 

@@ -67,33 +67,26 @@ class CreateUserTeamListAPIView(APIView):
         user = self.request.user
 
         data = self.request.data
+        with transaction.atomic():
+            team_list = TeamList.objects.create(
+                title=data["title"], teams=len(data["teams"])
+            )
+            user_team_list = UserTeamList(user=user, team_list=team_list)
+            user_team_list.full_clean()
+            user_team_list.save()
 
-        try:
-            with transaction.atomic():
-                team_list = TeamList.objects.create(
-                    title=data["title"], teams=len(data["teams"])
+            for team_data in data["teams"]:
+                team = Team(
+                    name=team_data["name"],
+                    position=team_data["position"],
+                    team_list=team_list,
                 )
-                user_team_list = UserTeamList(user=user, team_list=team_list)
-                user_team_list.full_clean()
-                user_team_list.save()
+                team.full_clean()
+                team.save()
 
-                for team_data in data["teams"]:
-                    team = Team(
-                        name=team_data["name"],
-                        position=team_data["position"],
-                        team_list=team_list,
-                    )
-                    team.full_clean()
-                    team.save()
-
-                return Response(
-                    {"success": "List created"},
-                    status=status.HTTP_200_OK,
-                )
-        except IntegrityError as e:
             return Response(
-                {"error": e.message},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"success": "List created"},
+                status=status.HTTP_200_OK,
             )
 
 
