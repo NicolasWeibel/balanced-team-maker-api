@@ -35,6 +35,9 @@ class TeamList(models.Model):
         teams = Team.objects.filter(team_list=self).count()
         return teams
 
+    def __str__(self):
+        return f"{self.title} / {self.teams} teams"
+
 
 class UserTeamList(models.Model):
     user = models.ForeignKey(
@@ -60,3 +63,6 @@ class Team(models.Model):
         verbose_name_plural = "Teams"
 
         unique_together = ("position", "team_list")
+
+    def __str__(self):
+        return f"{self.name} / {self.position}°"

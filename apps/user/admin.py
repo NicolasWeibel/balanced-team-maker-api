@@ -1,11 +1,14 @@
 from django.contrib import admin
-from . import models
+
+from apps.player.admin import UserPlayerListInline
+from apps.user.models import User
+from apps.team.admin import UserTeamListInline
 
 
 # Register your models here.
 
 
-@admin.register(models.User)
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("username", "email")}),
@@ -60,3 +63,5 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "is_staff")
 
     date_hierarchy = "last_login"
+
+    inlines = [UserPlayerListInline, UserTeamListInline]

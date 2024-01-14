@@ -38,6 +38,9 @@ class PlayerList(models.Model):
         players = Player.objects.filter(player_list=self).count()
         return players
 
+    def __str__(self):
+        return f"{self.title} / {self.players} players"
+
 
 class UserPlayerList(models.Model):
     user = models.ForeignKey(
@@ -104,3 +107,6 @@ class Player(models.Model):
         verbose_name_plural = "Players"
 
         unique_together = ("position", "player_list")
+
+    def __str__(self):
+        return f"{self.name} / {self.position}°"
