@@ -38,6 +38,7 @@ PROJECT_APPS = [
     "apps.user",
     "apps.player",
     "apps.team",
+    "apps.draw",
 ]
 
 THIRD_PARTY_APPS = [
