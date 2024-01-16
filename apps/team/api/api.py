@@ -77,10 +77,11 @@ class CreateUserTeamListAPIView(APIView):
 
             for team_data in data["teams"]:
                 team = Team(
-                    name=team_data["name"],
-                    position=team_data["position"],
                     team_list=team_list,
                 )
+                for key, value in team_data.items():
+                    setattr(team, key, value)
+
                 team.full_clean()
                 team.save()
 
@@ -109,10 +110,11 @@ class EditUserTeamListAPIView(APIView):
 
                 for team_data in data["teams"]:
                     team = Team(
-                        name=team_data["name"],
-                        position=team_data["position"],
                         team_list=team_list,
                     )
+                    for key, value in team_data.items():
+                        setattr(team, key, value)
+
                     team.full_clean()
                     team.save()
 

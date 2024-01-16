@@ -1,4 +1,4 @@
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -37,9 +37,9 @@ class PlayerListDetailAPIView(APIView):
     def get(self, request, id):
         user = self.request.user
 
-        if UserPlayerList.objects.filter(user=user, id=id).exists():
-            player_list = PlayerList.objects.get(id=id)
+        player_list = PlayerList.objects.filter(id=id).first()
 
+        if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
             result = {
                 "id": player_list.id,
                 "title": player_list.title,
@@ -77,15 +77,11 @@ class CreateUserPlayerListAPIView(APIView):
 
             for player_data in data["players"]:
                 player = Player(
-                    name=player_data["name"],
-                    position=player_data["position"],
                     player_list=player_list,
-                    gender=player_data["gender"],
-                    stars=player_data["stars"],
-                    attack=player_data["attack"],
-                    defense=player_data["defense"],
-                    resistance=player_data["resistance"],
                 )
+                for key, value in player_data.items():
+                    setattr(player, key, value)
+
                 player.full_clean()
                 player.save()
 
@@ -114,15 +110,11 @@ class EditUserPlayerListAPIView(APIView):
 
                 for player_data in data["players"]:
                     player = Player(
-                        name=player_data["name"],
-                        position=player_data["position"],
                         player_list=player_list,
-                        gender=player_data["gender"],
-                        stars=player_data["stars"],
-                        attack=player_data["attack"],
-                        defense=player_data["defense"],
-                        resistance=player_data["resistance"],
                     )
+                    for key, value in player_data.items():
+                        setattr(player, key, value)
+
                     player.full_clean()
                     player.save()
 
