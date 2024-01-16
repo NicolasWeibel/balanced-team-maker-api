@@ -86,7 +86,7 @@ class CreateUserTeamListAPIView(APIView):
 
             return Response(
                 {"success": "List created"},
-                status=status.HTTP_200_OK,
+                status=status.HTTP_201_CREATED,
             )
 
 
