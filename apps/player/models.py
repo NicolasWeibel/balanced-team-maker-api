@@ -80,9 +80,7 @@ class Player(models.Model):
         PlayerList, on_delete=models.CASCADE, validators=[validate_max_players_per_list]
     )
 
-    gender = models.CharField(
-        max_length=1, choices=GENDER_CHOICES, blank=True, default="n"
-    )
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
     stars = models.DecimalField(
         max_digits=2, decimal_places=1, choices=STAR_CHOICES, null=True, blank=True
     )
