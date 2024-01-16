@@ -13,9 +13,9 @@ class UserTeamListAPIView(APIView):
 
     def get(self, request):
         user = self.request.user
-        if UserTeamList.objects.filter(user=user).exists():
-            user_team_lists = UserTeamList.objects.filter(user=user)
 
+        user_team_lists = UserTeamList.objects.filter(user=user)
+        if user_team_lists.exists():
             team_lists = [
                 user_team_list.team_list for user_team_list in user_team_lists
             ]

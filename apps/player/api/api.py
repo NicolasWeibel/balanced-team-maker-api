@@ -13,9 +13,9 @@ class UserPlayerListAPIView(APIView):
 
     def get(self, request):
         user = self.request.user
-        if UserPlayerList.objects.filter(user=user).exists():
-            user_player_lists = UserPlayerList.objects.filter(user=user)
 
+        user_player_lists = UserPlayerList.objects.filter(user=user)
+        if user_player_lists.exists():
             player_lists = [
                 user_player_list.player_list for user_player_list in user_player_lists
             ]
