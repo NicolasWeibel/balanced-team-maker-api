@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from apps.draw.slug import unique_slugify
+from django.utils.crypto import get_random_string
 
 from apps.player.models import PlayerList
 from apps.team.models import TeamList
@@ -18,6 +18,15 @@ def validate_max_draws_per_user(user):
         )
 
 
+def get_unique_slug():
+    unique_slug = get_random_string(length=32).lower()
+
+    while Draw.objects.filter(slug=unique_slug).exists():
+        unique_slug = get_random_string(length=32).lower()
+
+    return unique_slug
+
+
 class Draw(models.Model):
     TYPE_CHOICES = (
         ("n", "Normal"),
@@ -27,7 +36,7 @@ class Draw(models.Model):
     )
 
     title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, default=get_unique_slug)
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, validators=[validate_max_draws_per_user]
@@ -44,12 +53,6 @@ class Draw(models.Model):
         verbose_name_plural = "Draws"
 
     def save(self, **kwargs):
-        if self._state.adding:
-            # Create unique slug
-            slug_str = self.title
-            unique_slugify(self, slug_str)
-
-        # Update last_modified
         self.last_modified = timezone.now()
 
         super(Draw, self).save(**kwargs)
