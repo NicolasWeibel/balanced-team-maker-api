@@ -70,9 +70,10 @@ class CreateUserTeamListAPIView(APIView):
 
         data = self.request.data
         with transaction.atomic():
-            team_list = TeamList.objects.create(
-                title=data["title"], teams=len(data["teams"])
-            )
+            team_list = TeamList(title=data["title"], teams=len(data["teams"]))
+            team_list.full_clean()
+            team_list.save()
+
             user_team_list = UserTeamList(user=user, team_list=team_list)
             user_team_list.full_clean()
             user_team_list.save()
@@ -108,6 +109,7 @@ class EditUserTeamListAPIView(APIView):
             with transaction.atomic():
                 team_list.title = data["title"]
                 team_list.teams = len(data["teams"])
+                team_list.full_clean()
                 team_list.save()
 
                 Team.objects.filter(team_list=team_list).delete()

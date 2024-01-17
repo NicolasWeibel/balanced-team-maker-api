@@ -73,9 +73,10 @@ class CreateUserPlayerListAPIView(APIView):
 
         data = self.request.data
         with transaction.atomic():
-            player_list = PlayerList.objects.create(
-                title=data["title"], players=len(data["players"])
-            )
+            player_list = PlayerList(title=data["title"], players=len(data["players"]))
+            player_list.full_clean()
+            player_list.save()
+
             user_player_list = UserPlayerList(user=user, player_list=player_list)
             user_player_list.full_clean()
             user_player_list.save()
@@ -114,6 +115,7 @@ class EditUserPlayerListAPIView(APIView):
             with transaction.atomic():
                 player_list.title = data["title"]
                 player_list.players = len(data["players"])
+                player_list.full_clean()
                 player_list.save()
 
                 Player.objects.filter(player_list=player_list).delete()

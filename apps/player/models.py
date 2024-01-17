@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 User = settings.AUTH_USER_MODEL
 MAX_PLAYER_LISTS_PER_USER = 20
 MAX_PLAYERS_PER_LIST = 100
+MIN_PLAYERS_PER_LIST = 1
 
 
 def validate_max_player_lists_per_user(user):
@@ -28,15 +29,16 @@ def validate_max_players_per_list(player_list):
 
 class PlayerList(models.Model):
     title = models.CharField(max_length=255, blank=True)
-    players = models.PositiveSmallIntegerField(default=0)
+    players = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(MIN_PLAYERS_PER_LIST),
+            MaxValueValidator(MAX_PLAYERS_PER_LIST),
+        ]
+    )
 
     class Meta:
         verbose_name = "Player List"
         verbose_name_plural = "Player Lists"
-
-    def get_player_count(self):
-        players = Player.objects.filter(player_list=self).count()
-        return players
 
     def __str__(self):
         return f"{self.title} / {self.players} players"
@@ -76,9 +78,7 @@ class Player(models.Model):
     name = models.CharField(max_length=255)
     position = models.PositiveSmallIntegerField()
 
-    player_list = models.ForeignKey(
-        PlayerList, on_delete=models.CASCADE, validators=[validate_max_players_per_list]
-    )
+    player_list = models.ForeignKey(PlayerList, on_delete=models.CASCADE)
 
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
     stars = models.DecimalField(

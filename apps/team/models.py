@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = settings.AUTH_USER_MODEL
 MAX_TEAM_LISTS_PER_USER = 20
 MAX_TEAMS_PER_LIST = 100
+MIN_TEAMS_PER_LIST = 1
 
 
 def validate_max_team_lists_per_user(user):
@@ -25,15 +27,16 @@ def validate_max_teams_per_list(team_list):
 
 class TeamList(models.Model):
     title = models.CharField(max_length=255, blank=True)
-    teams = models.PositiveSmallIntegerField(default=0)
+    teams = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(MIN_TEAMS_PER_LIST),
+            MaxValueValidator(MAX_TEAMS_PER_LIST),
+        ]
+    )
 
     class Meta:
         verbose_name = "Team List"
         verbose_name_plural = "Team Lists"
-
-    def get_team_count(self):
-        teams = Team.objects.filter(team_list=self).count()
-        return teams
 
     def __str__(self):
         return f"{self.title} / {self.teams} teams"
@@ -54,9 +57,7 @@ class Team(models.Model):
     name = models.CharField(max_length=255)
     position = models.PositiveSmallIntegerField()
 
-    team_list = models.ForeignKey(
-        TeamList, on_delete=models.CASCADE, validators=[validate_max_teams_per_list]
-    )
+    team_list = models.ForeignKey(TeamList, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Team"
