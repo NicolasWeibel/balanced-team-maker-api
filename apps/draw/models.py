@@ -44,7 +44,7 @@ class Draw(models.Model):
     player_list = models.ForeignKey(PlayerList, on_delete=models.CASCADE)
     team_list = models.ForeignKey(TeamList, on_delete=models.CASCADE)
 
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(null=True, blank=True)
 
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, default="n")
 

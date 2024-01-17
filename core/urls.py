@@ -10,6 +10,7 @@ urlpatterns = [
     path("auth/", include("djoser.social.urls")),
     path("api/player/", include("apps.player.api.urls")),
     path("api/team/", include("apps.team.api.urls")),
+    path("api/draw/", include("apps.draw.api.urls")),
     path("admin/", admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
