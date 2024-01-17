@@ -39,7 +39,12 @@ class PlayerListDetailAPIView(APIView):
 
         player_list = PlayerList.objects.filter(id=id).first()
 
-        if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
+        if (
+            player_list
+            and UserPlayerList.objects.filter(
+                user=user, player_list=player_list
+            ).exists()
+        ):
             result = {
                 "id": player_list.id,
                 "title": player_list.title,
@@ -100,7 +105,12 @@ class EditUserPlayerListAPIView(APIView):
         data = self.request.data
         player_list = PlayerList.objects.filter(id=data["id"]).first()
 
-        if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
+        if (
+            player_list
+            and UserPlayerList.objects.filter(
+                user=user, player_list=player_list
+            ).exists()
+        ):
             with transaction.atomic():
                 player_list.title = data["title"]
                 player_list.players = len(data["players"])
@@ -136,7 +146,12 @@ class DeleteUserPlayerListAPIView(APIView):
 
         player_list = PlayerList.objects.filter(id=id).first()
 
-        if UserPlayerList.objects.filter(user=user, player_list=player_list).exists():
+        if (
+            player_list
+            and UserPlayerList.objects.filter(
+                user=user, player_list=player_list
+            ).exists()
+        ):
             player_list.delete()
             return Response(
                 {"success": "List deleted"},

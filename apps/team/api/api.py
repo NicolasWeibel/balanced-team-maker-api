@@ -37,9 +37,11 @@ class TeamListDetailAPIView(APIView):
     def get(self, request, id):
         user = self.request.user
 
-        if UserTeamList.objects.filter(user=user, id=id).exists():
-            team_list = TeamList.objects.get(id=id)
-
+        team_list = TeamList.objects.filter(id=id).first()
+        if (
+            team_list
+            and UserTeamList.objects.filter(user=user, team_list=team_list).exists()
+        ):
             result = {
                 "id": team_list.id,
                 "title": team_list.title,
@@ -96,11 +98,13 @@ class EditUserTeamListAPIView(APIView):
 
     def put(self, request, format=None):
         user = self.request.user
-
         data = self.request.data
-        team_list = TeamList.objects.filter(id=data["id"]).first()
 
-        if UserTeamList.objects.filter(user=user, team_list=team_list).exists():
+        team_list = TeamList.objects.filter(id=data["id"]).first()
+        if (
+            team_list
+            and UserTeamList.objects.filter(user=user, team_list=team_list).exists()
+        ):
             with transaction.atomic():
                 team_list.title = data["title"]
                 team_list.teams = len(data["teams"])
@@ -135,8 +139,10 @@ class DeleteUserTeamListAPIView(APIView):
         user = self.request.user
 
         team_list = TeamList.objects.filter(id=id).first()
-
-        if UserTeamList.objects.filter(user=user, team_list=team_list).exists():
+        if (
+            team_list
+            and UserTeamList.objects.filter(user=user, team_list=team_list).exists()
+        ):
             team_list.delete()
             return Response(
                 {"success": "List deleted"},
